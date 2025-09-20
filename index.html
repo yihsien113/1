@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>接龍記牌小工具</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #cce; }
+    .buttons { margin: 10px; }
+    button { font-size: 20px; margin: 5px; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
+    .slot { 
+      width: 80px; height: 50px; 
+      margin: 5px; 
+      font-size: 16px;
+      border: 2px solid #333; 
+      border-radius: 8px;
+      background: white;
+      color: black; /* 預設文字黑色 */
+    }
+    .grid { 
+      display: grid; 
+      grid-template-columns: repeat(6, 90px); /* 每排六格 */
+      gap: 10px;
+      justify-content: center; 
+      max-width: 600px; 
+      margin: auto; 
+    }
+    .clear { background: red; color: white; margin-top: 15px; }
+  </style>
+</head>
+<body>
+
+  <h2>接龍記牌小工具</h2>
+
+  <!-- 花色選擇 -->
+  <div class="buttons">
+    <button onclick="selectSuit('♣')">♣</button>
+    <button onclick="selectSuit('♦')">♦</button>
+    <button onclick="selectSuit('♥')">♥</button>
+    <button onclick="selectSuit('♠')">♠</button>
+  </div>
+
+  <!-- 數字選擇 -->
+  <div class="buttons">
+    <button onclick="selectRank('A')">A</button>
+    <button onclick="selectRank('2')">2</button>
+    <button onclick="selectRank('3')">3</button>
+    <button onclick="selectRank('4')">4</button>
+    <button onclick="selectRank('5')">5</button>
+    <button onclick="selectRank('6')">6</button>
+    <button onclick="selectRank('7')">7</button>
+    <button onclick="selectRank('8')">8</button>
+    <button onclick="selectRank('9')">9</button>
+    <button onclick="selectRank('10')">10</button>
+    <button onclick="selectRank('J')">J</button>
+    <button onclick="selectRank('Q')">Q</button>
+    <button onclick="selectRank('K')">K</button>
+  </div>
+
+  <!-- 空格 -->
+  <div class="grid" id="slots"></div>
+
+  <!-- 全部清除 -->
+  <button class="clear" onclick="clearAll()">全部清除</button>
+  <button class="clear" onclick="shiftSlots()">清除空格並補齊</button>
+
+  <script>
+    let selectedSuit = '';
+    let selectedRank = '';
+
+    function selectSuit(suit) {
+      selectedSuit = suit;
+      tryFillSlot();
+    }
+
+    function selectRank(rank) {
+      selectedRank = rank;
+      tryFillSlot();
+    }
+
+    function tryFillSlot() {
+      if (!selectedSuit || !selectedRank) return;
+
+      const slots = Array.from(document.querySelectorAll('.slot'));
+      const firstEmpty = slots.find(s => s.innerText === '');
+      const target = firstEmpty || slots[0]; // 如果全滿就覆蓋第一個
+
+      fillSlot(target, selectedSuit, selectedRank);
+
+      // 重置選擇，避免重複填同一張
+      selectedSuit = '';
+      selectedRank = '';
+    }
+
+    function fillSlot(btn, suit, rank) {
+      btn.innerText = suit + rank;
+      btn.style.color = (suit === '♥' || suit === '♦') ? 'red' : 'black';
+
+      // 點擊已經填好的牌可以清空
+      btn.onclick = function() {
+        btn.innerText = '';
+        btn.style.color = 'black';
+        // 恢復自動填入功能
+        btn.onclick = () => fillSlot(btn, suit, rank);
+      };
+    }
+
+    function clearAll() {
+      const slots = document.querySelectorAll('.slot');
+      slots.forEach(s => {
+        s.innerText = '';
+        s.style.color = 'black';
+        s.onclick = () => {};
+      });
+    }
+
+    function shiftSlots() {
+      const slots = Array.from(document.querySelectorAll('.slot'));
+      const values = slots
+        .filter(s => s.innerText !== '')
+        .map(s => ({ text: s.innerText, color: s.style.color }));
+
+      slots.forEach((s, i) => {
+        if (values[i]) {
+          s.innerText = values[i].text;
+          s.style.color = values[i].color;
+        } else {
+          s.innerText = '';
+          s.style.color = 'black';
+        }
+      });
+    }
+
+    // 建立 12 組 x 3 個 = 36 個空格
+    const slotsContainer = document.getElementById('slots');
+    for (let i = 0; i < 36; i++) {
+      let b = document.createElement('button');
+      b.className = 'slot';
+      b.onclick = () => {}; // 初始不做事，自動填入時才綁事件
+      slotsContainer.appendChild(b);
+    }
+  </script>
+
+</body>
+</html>
+
